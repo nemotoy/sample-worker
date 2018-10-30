@@ -2,23 +2,39 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"time"
+
+	"github.com/labstack/echo"
 )
 
-func main() {
+type message struct {
+	data string
+}
 
-	ch := make(chan string)
+func main() {
+	e := echo.New()
+	m := &message{}
+	e.GET("/:id", m.getID)
+
+	e.Logger.Fatal(e.Start(":8080"))
+}
+
+func (m *message) getID(c echo.Context) error {
+	id := c.Param("id")
+	ch := make(chan *message)
+
+	m.data = id
 
 	go func() {
-		for {
-			select {
-			case <-ch:
-				fmt.Println(ch)
-			}
-		}
-
+		fmt.Println(m)
+		time.Sleep(2 * time.Second)
+		ch <- m
 	}()
-	ch <- "hello"
 
-	time.Sleep(1 * time.Second)
+	fmt.Println("---start---")
+	<-ch
+	fmt.Println("---end---")
+
+	return c.String(http.StatusOK, fmt.Sprintf("return id: ", m.data))
 }
