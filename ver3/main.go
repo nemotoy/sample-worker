@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/labstack/echo"
@@ -12,7 +11,6 @@ import (
 
 type messageService struct {
 	ch chan *message
-	wg *sync.WaitGroup
 }
 
 type message struct {
@@ -33,25 +31,14 @@ func main() {
 
 func newMessage() *messageService {
 
-	wg := &sync.WaitGroup{}
-	ch := make(chan *message)
-
-	m := &messageService{
-		ch: ch,
-		wg: wg,
+	return &messageService{
+		ch: make(chan *message),
 	}
-
-	return m
 }
 
 func (m *messageService) getID(c echo.Context) error {
 
 	id, _ := strconv.Atoi(c.Param("id"))
-
-	message := &message{
-		data: []string{"a", "b", "c"},
-		id:   id,
-	}
 
 	go func() {
 		for {
@@ -61,7 +48,10 @@ func (m *messageService) getID(c echo.Context) error {
 		}
 	}()
 
-	m.ch <- message
+	m.ch <- &message{
+		data: []string{"a", "b", "c"},
+		id:   id,
+	}
 
 	return c.String(http.StatusOK, "ok")
 }
