@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/labstack/echo"
 )
@@ -39,37 +40,35 @@ func newMessage() *messageService {
 		ch: ch,
 		wg: wg,
 	}
-	for i := 0; i < worker; i++ {
-		wg.Add(1)
-		go m.worker()
-
-	}
 
 	return m
 }
 
 func (m *messageService) getID(c echo.Context) error {
+
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	// m.ch = make(chan *message)
 	message := &message{
 		data: []string{"a", "b", "c"},
 		id:   id,
 	}
+
+	go func() {
+		for {
+			message := <-m.ch
+			time.Sleep(2 * time.Second)
+			go m.worker(message)
+		}
+	}()
+
 	m.ch <- message
-	close(m.ch)
-	m.wg.Wait()
-	// http://cuto.unirita.co.jp/gostudy/post/go_chanel/
 
 	return c.String(http.StatusOK, "ok")
 }
 
-func (m *messageService) worker() {
-	defer m.wg.Done()
-	for message := range m.ch {
-		for _, m := range message.data {
-			fmt.Println(m)
-		}
-		fmt.Println(message.id)
+func (m *messageService) worker(message *message) {
+	for _, m := range message.data {
+		fmt.Println(m)
 	}
+	fmt.Println(message.id)
 }
