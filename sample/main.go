@@ -14,17 +14,16 @@ func main() {
 
 	go worker(ch, context)
 
-	sliStr := []string{"aaa", "bbb", "ccc", "ddd", "eee"}
-	time.Sleep(1 * time.Second)
+	sliStr := []string{"aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"}
 	ch <- sliStr
+
 	time.Sleep(1 * time.Second)
-	s := []string{"fff", "ggg"}
-	ch <- s
-	time.Sleep(1 * time.Second)
+	defer fmt.Println("---end---: ", time.Now())
 }
 
 func worker(ch <-chan []string, context context.Context) {
 	n := 5
+	fmt.Println("---start---: ", time.Now())
 	for i := 0; i < n; i++ {
 		go func() {
 			select {
