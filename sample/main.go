@@ -18,7 +18,7 @@ func main() {
 	ch <- sliStr
 
 	time.Sleep(1 * time.Second)
-	defer fmt.Println("---end---: ", time.Now())
+	fmt.Println("---end---: ", time.Now())
 }
 
 func worker(ch <-chan []string, context context.Context) {
@@ -32,6 +32,7 @@ func worker(ch <-chan []string, context context.Context) {
 					fmt.Println(s)
 				}
 			case <-context.Done():
+				fmt.Println("context is close: ", context.Err())
 				return
 			}
 		}()
